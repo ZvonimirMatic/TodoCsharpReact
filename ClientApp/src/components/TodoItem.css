@@ -1,0 +1,9 @@
+.todoItemContainer {
+    display: flex;
+}
+
+.todoItemContainer .todoItemInfo {
+    padding-left: 10px;
+    padding-right: 10px;
+    flex: 1;
+}
