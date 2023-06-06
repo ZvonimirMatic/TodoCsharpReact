@@ -78,7 +78,11 @@ app
         return Results.Ok(todoItemDtos);
     })
     .RequireAuthorization()
-    .WithName("GetAllTodoItems");
+    .WithName("GetAllTodoItems")
+    .WithOpenApi()
+    .WithSummary("Gets all todo items for logged in user.")
+    .Produces<IEnumerable<TodoItemDto>>()
+    .WithTags("TodoItem");
 
 app
     .MapGet("api/TodoItem/{id}", async (ApplicationDbContext dbContext, ClaimsPrincipal user, int id) =>
@@ -104,7 +108,13 @@ app
         return Results.Ok(todoItemDto);
     })
     .RequireAuthorization()
-    .WithName("GetTodoItem");
+    .WithName("GetTodoItem")
+    .WithOpenApi()
+    .WithSummary("Gets a specific todo item for logged in user.")
+    .Produces<TodoItemDto>()
+    .Produces(404)
+    .Produces(403)
+    .WithTags("TodoItem");
 
 app
     .MapPost("api/TodoItem", async (ApplicationDbContext dbContext, ClaimsPrincipal user, IValidator<CreateUpdateTodoItemDto> validator, CreateUpdateTodoItemDto createUpdateTodoItemDto) =>
@@ -134,7 +144,12 @@ app
         return Results.CreatedAtRoute("GetTodoItem", new { id = todoItem.Id }, todoItemDto);
     })
     .RequireAuthorization()
-    .WithName("CreateTodoItem");
+    .WithName("CreateTodoItem")
+    .WithOpenApi()
+    .WithSummary("Creates a new todo item for logged in user.")
+    .Produces<TodoItemDto>(201)
+    .ProducesValidationProblem()
+    .WithTags("TodoItem");
 
 app
     .MapPut("api/TodoItem/{id}", async (ApplicationDbContext dbContext, ClaimsPrincipal user, IValidator<CreateUpdateTodoItemDto> validator, CreateUpdateTodoItemDto createUpdateTodoItemDto, int id) =>
@@ -144,7 +159,7 @@ app
         {
             return Results.ValidationProblem(validationResult.ToDictionary());
         }
-        
+
         var userId = user.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
         var todoItem = await dbContext
@@ -171,7 +186,14 @@ app
         return Results.Ok(todoItemDto);
     })
     .RequireAuthorization()
-    .WithName("UpdateTodoItem");
+    .WithName("UpdateTodoItem")
+    .WithOpenApi()
+    .WithSummary("Updates a specific todo item for logged in user.")
+    .Produces<TodoItemDto>()
+    .ProducesValidationProblem()
+    .Produces(404)
+    .Produces(403)
+    .WithTags("TodoItem");
 
 app
     .MapDelete("api/TodoItem/{id}", async (ApplicationDbContext dbContext, ClaimsPrincipal user, int id) =>
@@ -199,7 +221,13 @@ app
         return Results.Ok();
     })
     .RequireAuthorization()
-    .WithName("DeleteTodoItem");
+    .WithName("DeleteTodoItem")
+    .WithOpenApi()
+    .WithSummary("Deletes a specific todo item for logged in user.")
+    .Produces(200)
+    .Produces(404)
+    .Produces(403)
+    .WithTags("TodoItem");
 
 app
     .MapPut("api/TodoItem/{id}/ToggleIsCompleted", async (ApplicationDbContext dbContext, ClaimsPrincipal user, int id) =>
@@ -229,7 +257,13 @@ app
         return Results.Ok(todoItemDto);
     })
     .RequireAuthorization()
-    .WithName("ToggleIsTodoItemCompleted");
+    .WithName("ToggleIsTodoItemCompleted")
+    .WithOpenApi()
+    .WithSummary("Toggles is completed status for a specific todo item for logged in user.")
+    .Produces<TodoItemDto>()
+    .Produces(404)
+    .Produces(403)
+    .WithTags("TodoItem");
 
 app.MapFallbackToFile("index.html");
 
