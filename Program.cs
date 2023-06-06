@@ -1,4 +1,7 @@
 using System.Security.Claims;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using MicroElements.Swashbuckle.FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using TodoCsharpReact.Data;
 using TodoCsharpReact.Dtos;
@@ -24,6 +27,11 @@ builder.Services.AddRazorPages();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddFluentValidationClientsideAdapters();
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+builder.Services.AddFluentValidationRulesToSwagger();
 
 var app = builder.Build();
 
@@ -99,8 +107,14 @@ app
     .WithName("GetTodoItem");
 
 app
-    .MapPost("api/TodoItem", async (ApplicationDbContext dbContext, ClaimsPrincipal user, CreateUpdateTodoItemDto createUpdateTodoItemDto) =>
+    .MapPost("api/TodoItem", async (ApplicationDbContext dbContext, ClaimsPrincipal user, IValidator<CreateUpdateTodoItemDto> validator, CreateUpdateTodoItemDto createUpdateTodoItemDto) =>
     {
+        var validationResult = await validator.ValidateAsync(createUpdateTodoItemDto);
+        if (!validationResult.IsValid)
+        {
+            return Results.ValidationProblem(validationResult.ToDictionary());
+        }
+
         var userId = user.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
         var todoItem = new TodoItem
@@ -123,8 +137,14 @@ app
     .WithName("CreateTodoItem");
 
 app
-    .MapPut("api/TodoItem/{id}", async (ApplicationDbContext dbContext, ClaimsPrincipal user, CreateUpdateTodoItemDto createUpdateTodoItemDto, int id) =>
+    .MapPut("api/TodoItem/{id}", async (ApplicationDbContext dbContext, ClaimsPrincipal user, IValidator<CreateUpdateTodoItemDto> validator, CreateUpdateTodoItemDto createUpdateTodoItemDto, int id) =>
     {
+        var validationResult = await validator.ValidateAsync(createUpdateTodoItemDto);
+        if (!validationResult.IsValid)
+        {
+            return Results.ValidationProblem(validationResult.ToDictionary());
+        }
+        
         var userId = user.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
         var todoItem = await dbContext
